@@ -54,7 +54,7 @@ for e in range(epochs):
         error_term = error * output * (1 - output)
 
         # The gradient descent step, the error times the gradient times the inputs
-        del_w += error_term * x
+        del_w += error_term * x   #三角形Wi
 
     # Update the weights here. The learning rate times the 
     # change in weights, divided by the number of records to average

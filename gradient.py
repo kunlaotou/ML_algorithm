@@ -23,7 +23,7 @@ def sigmoid(x):
 # Use to same seed to make debugging easier
 np.random.seed(42)
 
-n_records, n_features = features.shape
+n_records, n_features = features.shape #把features的行和列分别赋值给n_records, n_features
 last_loss = None
 
 # Initialize weights

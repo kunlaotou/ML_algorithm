@@ -1,0 +1,63 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jun 22 10:40:20 2017
+
+@author: Administrator
+"""
+
+import sys
+from sharebike_neural_network import *
+
+### Set the hyperparameters here ###
+iterations = 5000
+learning_rate = 0.75
+hidden_nodes = 15
+output_nodes = 1
+
+N_i = train_features.shape[1]
+network = NeuralNetwork(N_i, hidden_nodes, output_nodes, learning_rate)
+
+losses = {'train':[], 'validation':[]}
+#随机梯度下降算法
+for ii in range(iterations):
+    # Go through a random batch of 128 records from the training data set
+    batch = np.random.choice(train_features.index, size=128)
+    X, y = train_features.ix[batch].values, train_targets.ix[batch]['cnt']
+    
+    network.train(X, y) #训练你的神经网络
+    # Printing out the training progress
+    #注意：pandas格式的数据使用values直接转换成np格式
+    train_loss = MSE(network.run(train_features).T, train_targets['cnt'].values)
+    val_loss = MSE(network.run(val_features).T, val_targets['cnt'].values)
+    
+    #\r表示return，光标回到当前行首。所以能实现单行刷新的进度条效果。
+    sys.stdout.write("\rProgress: {:2.1f}".format(100 * ii/float(iterations)) \
+                     + "% ... Training loss: " + str(train_loss)[:5] \
+                     + " ... Validation loss: " + str(val_loss)[:5])
+    sys.stdout.flush()
+    
+    losses['train'].append(train_loss)
+    losses['validation'].append(val_loss)
+
+
+plt.plot(losses['train'], label='Training loss')
+plt.plot(losses['validation'], label='Validation loss')
+plt.legend()
+_ = plt.ylim()
+
+
+
+fig, ax = plt.subplots(figsize=(8,4))
+#scaled_features字典里 {键：特征名 值：[均值，方差]}
+mean, std = scaled_features['cnt']
+predictions = network.run(test_features).T*std + mean
+
+ax.plot(predictions[0], label='Prediction')
+ax.plot((test_targets['cnt']*std + mean).values, label='Data')
+ax.set_xlim(right=len(predictions))
+ax.legend()
+
+dates = pd.to_datetime(rides.ix[test_data.index]['dteday'])
+dates = dates.apply(lambda d: d.strftime('%b %d'))
+ax.set_xticks(np.arange(len(dates))[12::24])
+_ = ax.set_xticklabels(dates[12::24], rotation=45)
